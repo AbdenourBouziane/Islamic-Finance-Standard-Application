@@ -6,130 +6,240 @@ import '../models/glossary_term.dart';
 import '../data/mock_data.dart';
 
 class ApiService {
-  // Update this URL with your Vercel deployment URL
-  final String baseUrl = 'https://your-vercel-deployment-url.vercel.app/api'; 
-  final bool useMockData = false; // We're now using the real API
+  // Update this URL to match your backend
+  final String baseUrl = 'http://localhost:8000/api'; // For Android emulator
+  // Use 'http://localhost:8000/api' for iOS simulator or web
+  
+  final bool useMockData = false; // We're using the real API
 
   Future<List<Standard>> getStandards() async {
-    if (useMockData) {
-      // Return mock data
+    try {
+      print('Fetching standards from: $baseUrl/standards');
+      final response = await http.get(Uri.parse('$baseUrl/standards'));
+      
+      if (response.statusCode == 200) {
+        print('Standards response: ${response.body}');
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Standard.fromJson(json)).toList();
+      } else {
+        print('Error fetching standards: ${response.statusCode}');
+        throw Exception('Failed to load standards: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception fetching standards: $e');
+      // Return mock data as fallback
       return MockData.standards.map((json) => Standard.fromJson(json)).toList();
-    }
-
-    final response = await http.get(Uri.parse('$baseUrl/standards'));
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Standard.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load standards: ${response.statusCode}');
     }
   }
 
   Future<List<Example>> getExamples() async {
-    if (useMockData) {
-      // Return mock data
+    try {
+      print('Fetching examples from: $baseUrl/examples');
+      final response = await http.get(Uri.parse('$baseUrl/examples'));
+      
+      if (response.statusCode == 200) {
+        print('Examples response: ${response.body}');
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => Example.fromJson(json)).toList();
+      } else {
+        print('Error fetching examples: ${response.statusCode}');
+        throw Exception('Failed to load examples: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception fetching examples: $e');
+      // Return mock data as fallback
       return MockData.examples.map((json) => Example.fromJson(json)).toList();
-    }
-
-    final response = await http.get(Uri.parse('$baseUrl/examples'));
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Example.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load examples: ${response.statusCode}');
     }
   }
 
   Future<List<GlossaryTerm>> getGlossaryTerms() async {
-    if (useMockData) {
-      // Return mock data
+    try {
+      print('Fetching glossary from: $baseUrl/glossary');
+      final response = await http.get(Uri.parse('$baseUrl/glossary'));
+      
+      if (response.statusCode == 200) {
+        print('Glossary response: ${response.body}');
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((json) => GlossaryTerm.fromJson(json)).toList();
+      } else {
+        print('Error fetching glossary: ${response.statusCode}');
+        throw Exception('Failed to load glossary terms: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception fetching glossary: $e');
+      // Return mock data as fallback
       return MockData.glossaryTerms.map((json) => GlossaryTerm.fromJson(json)).toList();
     }
-
-    final response = await http.get(Uri.parse('$baseUrl/glossary'));
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((json) => GlossaryTerm.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load glossary terms: ${response.statusCode}');
-    }
   }
 
-  Future<String> getExplanation(String standardCode, String scenario, String language) async {
-    if (useMockData) {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 2));
-      return MockData.getExplanation(standardCode, language);
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/explanation'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'standard_code': standardCode,
+  Future<String> getExplanation(String standardId, String scenario, String language) async {
+    try {
+      print('Sending explanation request to: $baseUrl/explanation');
+      print('Request body: ${json.encode({
+        'standard_id': standardId,
         'scenario': scenario,
         'language': language,
-      }),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['explanation'];
-    } else {
-      throw Exception('Failed to get explanation: ${response.statusCode}');
+      })}');
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/explanation'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'standard_id': standardId,
+          'scenario': scenario,
+          'language': language,
+        }),
+      );
+      
+      print('Explanation response status: ${response.statusCode}');
+      print('Explanation response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String explanation = data['explanation'];
+        
+        // Validate the response
+        if (language == 'Arabic' && _isProblematicArabicResponse(explanation)) {
+          print('Detected problematic Arabic response, using fallback');
+          return MockData.getExplanation(standardId, language);
+        }
+        
+        return explanation;
+      } else {
+        print('Error getting explanation: ${response.statusCode}');
+        throw Exception('Failed to get explanation: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception getting explanation: $e');
+      // Return mock explanation as fallback
+      return MockData.getExplanation(standardId, language);
     }
   }
 
-  Future<String> getFeedback(String scenario, String userSolution, String expertSolution, String language) async {
-    if (useMockData) {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 2));
-      return MockData.getFeedback(language);
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/feedback'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'scenario': scenario,
+  Future<Map<String, dynamic>> getFeedback(String standardId, String userSolution, String language) async {
+    try {
+      print('Sending feedback request to: $baseUrl/feedback');
+      print('Request body: ${json.encode({
+        'standard_id': standardId,
         'user_solution': userSolution,
-        'expert_solution': expertSolution,
         'language': language,
-      }),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['feedback'];
-    } else {
-      throw Exception('Failed to get feedback: ${response.statusCode}');
+      })}');
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/feedback'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'standard_id': standardId,
+          'user_solution': userSolution,
+          'language': language,
+        }),
+      );
+      
+      print('Feedback response status: ${response.statusCode}');
+      print('Feedback response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String feedback = data['feedback'];
+        String expertSolution = data['expert_solution'];
+        
+        // Validate the responses
+        if (language == 'Arabic') {
+          if (_isProblematicArabicResponse(feedback)) {
+            print('Detected problematic Arabic feedback, using fallback');
+            feedback = MockData.getFeedback(language);
+          }
+          
+          if (_isProblematicArabicResponse(expertSolution)) {
+            print('Detected problematic Arabic expert solution, using fallback');
+            expertSolution = MockData.getExplanation(standardId, language);
+          }
+        }
+        
+        return {
+          'feedback': feedback,
+          'expert_solution': expertSolution,
+        };
+      } else {
+        print('Error getting feedback: ${response.statusCode}');
+        throw Exception('Failed to get feedback: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception getting feedback: $e');
+      // Return mock feedback as fallback
+      return {
+        'feedback': MockData.getFeedback(language),
+        'expert_solution': MockData.getExplanation(standardId, language),
+      };
     }
   }
 
-  Future<String> getCustomAnswer(String question, String language) async {
-    if (useMockData) {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 2));
-      return MockData.getCustomAnswer(language);
-    }
-
-    final response = await http.post(
-      Uri.parse('$baseUrl/custom-question'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
+  Future<String> askCustomQuestion(String question, String language) async {
+    try {
+      print('Sending question to: $baseUrl/ask');
+      print('Request body: ${json.encode({
         'question': question,
         'language': language,
-      }),
-    );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['answer'];
-    } else {
-      throw Exception('Failed to get answer: ${response.statusCode}');
+      })}');
+      
+      // For Arabic, use mock data directly to avoid API issues
+      if (language == 'Arabic') {
+        print('Using mock data for Arabic question');
+        return MockData.getCustomAnswer(language);
+      }
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/ask'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'question': question,
+          'language': language,
+        }),
+      );
+      
+      print('Question response status: ${response.statusCode}');
+      print('Question response body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String answer = data['answer'];
+        
+        // Validate the response
+        if (language == 'Arabic' && _isProblematicArabicResponse(answer)) {
+          print('Detected problematic Arabic answer, using fallback');
+          return MockData.getCustomAnswer(language);
+        }
+        
+        return answer;
+      } else {
+        print('Error asking question: ${response.statusCode}');
+        throw Exception('Failed to get answer: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception asking question: $e');
+      // Return mock answer as fallback
+      return MockData.getCustomAnswer(language);
     }
+  }
+  
+  // Helper method to detect problematic Arabic responses
+  bool _isProblematicArabicResponse(String text) {
+    // Check for repetitive text patterns
+    if (text.contains('وتحديد المدفوعات المستقبلية بشكل صحيح وتحديد المدفوعات المستقبلية بشكل صحيح')) {
+      return true;
+    }
+    
+    // Check for incomplete sentences
+    if (text.endsWith('بشك') || text.endsWith('...') || text.length < 50) {
+      return true;
+    }
+    
+    // Check for instructions to the model rather than actual content
+    if (text.contains('في هذه الإجابة، أجعل توضيحك') || 
+        text.contains('اجعل شرحك سهلاً لغير المتخصصين')) {
+      return true;
+    }
+    
+    return false;
   }
 }

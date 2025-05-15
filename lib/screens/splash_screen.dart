@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:islamic_finance_education/providers/standards_provider.dart';
 import 'package:provider/provider.dart';
+import '../providers/app_state.dart'; // Changed from standard_provider.dart
 import 'main_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -22,10 +22,12 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _loadData() async {
-    final provider = Provider.of<StandardProvider>(context, listen: false);
+    final appState = Provider.of<AppState>(context, listen: false); // Changed from standardProvider
     
     // Initialize data
-    await provider.initializeData();
+    await appState.fetchStandards();
+    await appState.fetchExamples();
+    await appState.fetchGlossaryTerms();
     
     // Navigate to main screen after a delay
     Future.delayed(const Duration(seconds: 2), () {
@@ -39,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final standardProvider = Provider.of<StandardProvider>(context, listen: false);
+    final appState = Provider.of<AppState>(context, listen: false); // Changed from standardProvider
     
     return Scaffold(
       body: Container(
@@ -61,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                standardProvider.isEnglish 
+                appState.isEnglish 
                   ? 'Islamic Finance Standards'
                   : 'معايير التمويل الإسلامي',
                 style: GoogleFonts.tajawal(
@@ -73,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                standardProvider.isEnglish 
+                appState.isEnglish 
                   ? 'Learn AAOIFI standards through simple examples'
                   : 'تعلم معايير هيئة المحاسبة والمراجعة للمؤسسات المالية الإسلامية من خلال أمثلة بسيطة',
                 style: GoogleFonts.tajawal(

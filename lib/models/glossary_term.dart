@@ -11,9 +11,9 @@ class GlossaryTerm {
 
   factory GlossaryTerm.fromJson(Map<String, dynamic> json) {
     return GlossaryTerm(
-      term: json['term'],
-      definitionEn: json['definition_en'],
-      definitionAr: json['definition_ar'],
+      term: json['term'] ?? '',
+      definitionEn: json['definition_en'] ?? '',
+      definitionAr: json['definition_ar'] ?? '',
     );
   }
 }

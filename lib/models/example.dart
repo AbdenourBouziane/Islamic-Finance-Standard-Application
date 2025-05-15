@@ -15,11 +15,11 @@ class Example {
 
   factory Example.fromJson(Map<String, dynamic> json) {
     return Example(
-      standardId: json['standard_id'],
-      titleEn: json['title_en'],
-      titleAr: json['title_ar'],
-      scenarioEn: json['scenario_en'],
-      scenarioAr: json['scenario_ar'],
+      standardId: json['standard_id'] ?? json['standard_code'] ?? '', // Support both field names
+      titleEn: json['title_en'] ?? '',
+      titleAr: json['title_ar'] ?? '',
+      scenarioEn: json['scenario_en'] ?? '',
+      scenarioAr: json['scenario_ar'] ?? '',
     );
   }
 }

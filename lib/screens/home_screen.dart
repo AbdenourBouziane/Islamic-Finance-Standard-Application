@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:islamic_finance_education/providers/standards_provider.dart';
-import 'package:islamic_finance_education/screens/glossary_screen.dart';
-import 'package:islamic_finance_education/screens/interactive_tutorial_screen.dart';
-import 'package:islamic_finance_education/screens/standards_explorer_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/app_state.dart'; // Changed from standard_provider.dart
+import 'standards_explorer_screen.dart';
+import 'tutorial_screen.dart'; // Using tutorial_screen.dart instead of standard_tutorial_screen.dart
+import 'glossary_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final standardProvider = Provider.of<StandardProvider>(context);
+    final appState = Provider.of<AppState>(context); // Changed from standardProvider
     final size = MediaQuery.of(context).size;
     
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(context, standardProvider, size),
+          _buildHeader(context, appState, size),
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildFeaturesList(context, standardProvider),
+                _buildFeaturesList(context, appState),
                 const SizedBox(height: 24),
-                _buildGetStartedSection(context, standardProvider),
+                _buildGetStartedSection(context, appState),
                 const SizedBox(height: 24),
-                _buildAboutSection(context, standardProvider),
+                _buildAboutSection(context, appState),
                 const SizedBox(height: 32),
               ],
             ),
@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, StandardProvider standardProvider, Size size) {
+  Widget _buildHeader(BuildContext context, AppState appState, Size size) {
     return Container(
       width: double.infinity,
       height: size.height * 0.25,
@@ -53,8 +53,8 @@ class HomeScreen extends StatelessWidget {
       child: Stack(
         children: [
           Positioned(
-            right: standardProvider.isEnglish ? -50 : null,
-            left: standardProvider.isEnglish ? null : -50,
+            right: appState.isEnglish ? -50 : null,
+            left: appState.isEnglish ? null : -50,
             top: -20,
             child: Opacity(
               opacity: 0.1,
@@ -72,7 +72,7 @@ class HomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  standardProvider.isEnglish 
+                  appState.isEnglish 
                     ? 'Welcome to Islamic Finance Standards'
                     : 'مرحبًا بكم في معايير التمويل الإسلامي',
                   style: GoogleFonts.tajawal(
@@ -83,7 +83,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  standardProvider.isEnglish
+                  appState.isEnglish
                     ? 'Learn AAOIFI standards through simple examples'
                     : 'تعلم معايير هيئة المحاسبة والمراجعة للمؤسسات المالية الإسلامية من خلال أمثلة بسيطة',
                   style: GoogleFonts.tajawal(
@@ -99,8 +99,8 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFeaturesList(BuildContext context, StandardProvider standardProvider) {
-    final features = standardProvider.isEnglish
+  Widget _buildFeaturesList(BuildContext context, AppState appState) {
+    final features = appState.isEnglish
       ? [
           'Explore the five key standards: FAS 4, FAS 7, FAS 10, FAS 28, and FAS 32',
           'Learn through real-world examples and cases',
@@ -135,7 +135,7 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  standardProvider.isEnglish ? 'Features' : 'الميزات',
+                  appState.isEnglish ? 'Features' : 'الميزات',
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
               ],
@@ -170,7 +170,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGetStartedSection(BuildContext context, StandardProvider standardProvider) {
+  Widget _buildGetStartedSection(BuildContext context, AppState appState) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -190,14 +190,14 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  standardProvider.isEnglish ? 'Get Started' : 'ابدأ الآن',
+                  appState.isEnglish ? 'Get Started' : 'ابدأ الآن',
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              standardProvider.isEnglish
+              appState.isEnglish
                 ? 'Start by exploring the standards or try an interactive tutorial!'
                 : 'ابدأ باستكشاف المعايير أو جرب درسًا تفاعليًا!',
               style: GoogleFonts.tajawal(
@@ -212,34 +212,20 @@ class HomeScreen extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      // Navigate to Standards Explorer using index
-                      final mainScreenState = context.findAncestorStateOfType<State>();
-                      if (mainScreenState != null) {
-                        // Use reflection to access the private _selectedIndex field
-                        final field = mainScreenState.runtimeType.toString() == '_MainScreenState' 
-                            ? mainScreenState.runtimeType.toString().contains('_selectedIndex')
-                                ? true 
-                                : false
-                            : false;
-                        
-                        if (field) {
-                          // If we can't access the field directly, use a workaround
-                          // This is a hack, but it works for this specific case
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => Scaffold(
-                                appBar: AppBar(
-                                  title: Text(standardProvider.isEnglish ? 'Standards Explorer' : 'مستكشف المعايير'),
-                                ),
-                                body: const StandardsExplorerScreen(),
-                              ),
+                      // Navigate to Standards Explorer
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => Scaffold(
+                            appBar: AppBar(
+                              title: Text(appState.isEnglish ? 'Standards Explorer' : 'مستكشف المعايير'),
                             ),
-                          );
-                        }
-                      }
+                            body: const StandardsExplorerScreen(),
+                          ),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.explore_rounded, size: 18),
-                    label: Text(standardProvider.isEnglish ? 'Explore' : 'استكشف'),
+                    label: Text(appState.isEnglish ? 'Explore' : 'استكشف'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -254,15 +240,15 @@ class HomeScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => Scaffold(
                             appBar: AppBar(
-                              title: Text(standardProvider.isEnglish ? 'Tutorial' : 'الدرس'),
+                              title: Text(appState.isEnglish ? 'Tutorial' : 'الدرس'),
                             ),
-                            body: const StandardTutorialScreen(),
+                            body: const TutorialScreen(), // Changed to TutorialScreen
                           ),
                         ),
                       );
                     },
                     icon: const Icon(Icons.school_rounded, size: 18),
-                    label: Text(standardProvider.isEnglish ? 'Tutorial' : 'الدرس'),
+                    label: Text(appState.isEnglish ? 'Tutorial' : 'الدرس'),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
@@ -276,7 +262,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection(BuildContext context, StandardProvider standardProvider) {
+  Widget _buildAboutSection(BuildContext context, AppState appState) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -296,14 +282,14 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  standardProvider.isEnglish ? 'About AAOIFI' : 'عن الهيئة',
+                  appState.isEnglish ? 'About AAOIFI' : 'عن الهيئة',
                   style: Theme.of(context).textTheme.displaySmall,
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              standardProvider.isEnglish
+              appState.isEnglish
                 ? 'The Accounting and Auditing Organization for Islamic Financial Institutions (AAOIFI) is an Islamic international autonomous non-profit corporate body that prepares accounting, auditing, governance, ethics, and Shari\'a standards for Islamic financial institutions.'
                 : 'هيئة المحاسبة والمراجعة للمؤسسات المالية الإسلامية هي هيئة إسلامية دولية مستقلة غير ربحية تعد معايير المحاسبة والمراجعة والحوكمة والأخلاق والشريعة للمؤسسات المالية الإسلامية.',
               style: GoogleFonts.tajawal(
@@ -320,7 +306,7 @@ class HomeScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => Scaffold(
                         appBar: AppBar(
-                          title: Text(standardProvider.isEnglish ? 'Glossary' : 'المصطلحات'),
+                          title: Text(appState.isEnglish ? 'Glossary' : 'المصطلحات'),
                         ),
                         body: const GlossaryScreen(),
                       ),
@@ -328,7 +314,7 @@ class HomeScreen extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.book_rounded, size: 18),
-                label: Text(standardProvider.isEnglish ? 'View Glossary' : 'عرض المصطلحات'),
+                label: Text(appState.isEnglish ? 'View Glossary' : 'عرض المصطلحات'),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),

@@ -15,11 +15,11 @@ class Standard {
 
   factory Standard.fromJson(Map<String, dynamic> json) {
     return Standard(
-      id: json['id'],
-      titleEn: json['title_en'],
-      titleAr: json['title_ar'],
-      descriptionEn: json['description_en'],
-      descriptionAr: json['description_ar'],
+      id: json['id'] ?? json['code'] ?? '', // Support both 'id' and 'code' for backward compatibility
+      titleEn: json['title_en'] ?? '',
+      titleAr: json['title_ar'] ?? '',
+      descriptionEn: json['description_en'] ?? '',
+      descriptionAr: json['description_ar'] ?? '',
     );
   }
 }

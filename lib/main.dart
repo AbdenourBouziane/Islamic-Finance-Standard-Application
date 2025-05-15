@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:islamic_finance_education/providers/standards_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'providers/app_state.dart'; // Changed from standard_provider.dart
 import 'screens/splash_screen.dart';
 
 void main() {
   runApp(
     ChangeNotifierProvider(
-      create: (context) => StandardProvider(),
+      create: (context) => AppState(), // Changed from StandardProvider
       child: const IslamicFinanceApp(),
     ),
   );
@@ -19,7 +19,7 @@ class IslamicFinanceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final standardProvider = Provider.of<StandardProvider>(context);
+    final appState = Provider.of<AppState>(context); // Changed from standardProvider
     
     return MaterialApp(
       title: 'Islamic Finance Standards',
@@ -33,7 +33,7 @@ class IslamicFinanceApp extends StatelessWidget {
         Locale('en'), // English
         Locale('ar'), // Arabic
       ],
-      locale: standardProvider.isEnglish ? const Locale('en') : const Locale('ar'),
+      locale: appState.isEnglish ? const Locale('en') : const Locale('ar'),
       theme: ThemeData(
         primaryColor: const Color(0xFF1E8449),
         scaffoldBackgroundColor: Colors.white,

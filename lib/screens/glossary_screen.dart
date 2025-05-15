@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:islamic_finance_education/providers/standards_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import '../providers/app_state.dart'; // Changed from standard_provider.dart
 import '../widgets/loading_indicator.dart';
 
 class GlossaryScreen extends StatelessWidget {
@@ -9,9 +10,9 @@ class GlossaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final standardProvider = Provider.of<StandardProvider>(context);
+    final appState = Provider.of<AppState>(context); // Changed from standardProvider
     
-    if (standardProvider.isLoading) {
+    if (appState.isLoading) {
       return const LoadingIndicator(
         message: 'Loading glossary...',
       );
@@ -22,13 +23,13 @@ class GlossaryScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(context, standardProvider),
+          _buildHeader(context, appState),
           const SizedBox(height: 16),
-          ...standardProvider.glossaryTerms.map((term) => _buildGlossaryItem(
+          ...appState.glossaryTerms.map((term) => _buildGlossaryItem(
             context, 
-            standardProvider,
+            appState,
             term.term, 
-            standardProvider.isEnglish ? term.definitionEn : term.definitionAr,
+            appState.isEnglish ? term.definitionEn : term.definitionAr,
           )).toList(),
           const SizedBox(height: 16),
         ],
@@ -36,7 +37,7 @@ class GlossaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, StandardProvider standardProvider) {
+  Widget _buildHeader(BuildContext context, AppState appState) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
@@ -56,7 +57,7 @@ class GlossaryScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  standardProvider.isEnglish 
+                  appState.isEnglish 
                     ? 'Islamic Finance Glossary'
                     : 'مصطلحات التمويل الإسلامي',
                   style: GoogleFonts.tajawal(
@@ -67,7 +68,7 @@ class GlossaryScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  standardProvider.isEnglish 
+                  appState.isEnglish 
                     ? 'Key terms and concepts in Islamic finance'
                     : 'المصطلحات والمفاهيم الرئيسية في التمويل الإسلامي',
                   style: GoogleFonts.tajawal(
@@ -83,7 +84,7 @@ class GlossaryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGlossaryItem(BuildContext context, StandardProvider standardProvider, String term, String definition) {
+  Widget _buildGlossaryItem(BuildContext context, AppState appState, String term, String definition) {
     return Card(
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
@@ -111,11 +112,16 @@ class GlossaryScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text(
-              definition,
-              style: GoogleFonts.tajawal(
-                fontSize: 15,
-                height: 1.5,
+            MarkdownBody(
+              data: definition,
+              styleSheet: MarkdownStyleSheet(
+                p: GoogleFonts.tajawal(
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+                listBullet: GoogleFonts.tajawal(
+                  fontSize: 15,
+                ),
               ),
             ),
           ],
